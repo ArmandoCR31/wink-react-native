@@ -3,152 +3,95 @@ import {
   View,
   Text,
   Image,
-  ActivityIndicator,
   FlatList,
   Pressable,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
 import { AnimatedTransactionCard } from "./TransactionCard";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { ITransaction } from "../models/types";
-const logo = require("../assets/images/logo.png");
+import { Screen } from "./Screen";
+import { Link } from "expo-router";
 const sinpeLogo = require("../assets/images/Sinpe.png");
+
 export function Main() {
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
-  const insets = useSafeAreaInsets();
-  const dataTest = [
-    {
-      id: "01",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "02",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "03",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "04",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "05",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "06",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "07",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "08",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "09",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "10",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "11",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "12",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-    {
-      id: "13",
-      amount: "1,850.00",
-      date: "Hoy 10:12 a.m",
-      description: "SINPE móvil - Arturo Robles",
-    },
-  ];
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+
   useEffect(() => {
-    setTransactions(dataTest);
+    loadTransactions();
   }, []);
+
+  const loadTransactions = () => {
+    if (loading) return;
+    setLoading(true);
+    const newTransactions = Array.from({ length: 10 }, (_, i) => ({
+      id: `${i + 1 + transactions.length}`,
+      amount: "1,850.00",
+      date: "Hoy 10:12 a.m",
+      contact: {
+        name: "Robles",
+        lastName: "Perez",
+      },
+      description: "Fiesta de Hallowink",
+      type: "SINPE móvil",
+    }));
+
+    setTimeout(() => {
+      setTransactions((prevTransactions) => [
+        ...prevTransactions,
+        ...newTransactions,
+      ]);
+      setPage(page + 1);
+      setLoading(false);
+    }, 1000);
+  };
+
   return (
-    <View
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        alignItems: "center",
-      }}
-    >
-      <Image source={logo}></Image>
+    <Screen>
       <View style={styles.details}>
         <Text style={styles.title}>Cuenta Colones</Text>
         <Text style={styles.subTitle}>Saldo disponible</Text>
         <Text style={styles.availableBalance}>₡36,850.00</Text>
         <Text style={styles.subTitle}>¿Qué querés hacer?</Text>
-        <Pressable
-          style={styles.button}
-          onPress={() => router.replace("/contact")}
-        >
-          <Image source={sinpeLogo}></Image>
-          <Text style={styles.textButton}>SINPE móvil</Text>
-        </Pressable>
+        <Link href="/contact" asChild>
+          <Pressable style={styles.button}>
+            <Image source={sinpeLogo} />
+            <Text style={styles.textButton}>SINPE móvil</Text>
+          </Pressable>
+        </Link>
       </View>
+
       <View style={styles.transaction}>
         <Text style={styles.textTransaction}>Movimientos</Text>
-        {transactions.length === 0 ? (
-          <ActivityIndicator color={"#fff"} size={"large"} />
-        ) : (
-          <FlatList
-            data={transactions}
-            keyExtractor={(transaction) => transaction.id}
-            renderItem={({ item, index }) => (
-              <AnimatedTransactionCard transaction={item} index={index} />
-            )}
-          />
-        )}
+        <FlatList
+          data={transactions}
+          keyExtractor={(transaction) => transaction.id}
+          renderItem={({ item, index }) => (
+            <AnimatedTransactionCard transaction={item} index={index} />
+          )}
+          onEndReached={loadTransactions} // Cargar más datos al llegar al final
+          onEndReachedThreshold={0.1} // Trigger cuando esté a 10% del final
+          initialNumToRender={10} // Cantidad de elementos iniciales a renderizar
+          windowSize={5} // Rango de elementos a mantener montados
+          ListFooterComponent={
+            loading ? <ActivityIndicator size="large" color="#4C51F7" /> : null
+          }
+        />
       </View>
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
   details: {
-    width: "100%",
     paddingLeft: 16,
   },
   title: {
     marginTop: 24,
     fontStyle: "normal",
-    fontWeight: "normal",
+    fontWeight: "700",
     fontSize: 22,
     lineHeight: 29,
     color: "#4C51F7",
@@ -186,10 +129,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   transaction: {
-    width: "100%",
-    marginTop: 32,
-    paddingLeft: 16,
-    paddingRight: 16,
+    flex: 1,
+    margin: 16,
   },
   textTransaction: {
     marginBottom: 16,

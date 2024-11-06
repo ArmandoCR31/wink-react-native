@@ -1,24 +1,38 @@
 import { useEffect, useRef } from "react";
 import { View, StyleSheet, Text, Animated, Pressable } from "react-native";
 import { ITransaction } from "../models/types";
-
+import { Link } from "expo-router";
 type TransactionCardProps = {
   transaction: ITransaction;
 };
 
 export function TransactionCard({ transaction }: TransactionCardProps) {
   return (
-    <Pressable>
-      <View key={transaction.id} style={styles.card}>
-        <View>
-          <Text style={styles.description}>{transaction.description}</Text>
-          <Text style={styles.date}>{transaction.date}</Text>
+    <Link
+      href={{
+        pathname: "/sinpe/details/1",
+        params: {
+          detail: JSON.stringify(transaction),
+        },
+      }}
+      asChild
+      key={transaction.id}
+    >
+      <Pressable>
+        <View key={transaction.id} style={styles.card}>
+          <View>
+            <Text style={styles.contact}>
+              {transaction.type} - {transaction.contact.name}{" "}
+              {transaction.contact.lastName}
+            </Text>
+            <Text style={styles.date}>{transaction.date}</Text>
+          </View>
+          <View>
+            <Text style={styles.amount}>-₡ {transaction.amount}</Text>
+          </View>
         </View>
-        <View>
-          <Text style={styles.amount}>-₡ {transaction.amount}</Text>
-        </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </Link>
   );
 }
 
@@ -28,8 +42,8 @@ export function AnimatedTransactionCard({ transaction, index }: any) {
   useEffect(() => {
     Animated.timing(opacity, {
       toValue: 1,
-      duration: 1000,
-      delay: index * 250,
+      duration: 500,
+      delay: index * 100,
       useNativeDriver: true,
     }).start();
   }, [opacity, index]);
@@ -46,7 +60,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  description: {
+  contact: {
     fontStyle: "normal",
     fontWeight: "400",
     fontSize: 14,

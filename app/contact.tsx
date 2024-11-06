@@ -1,7 +1,5 @@
 import * as Contacts from "expo-contacts";
-import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   Pressable,
   FlatList,
@@ -12,20 +10,21 @@ import {
   ActivityIndicator,
   Image,
 } from "react-native";
+import { Link, Stack } from "expo-router";
+import { Screen } from "../components/Screen";
 
 const arrow = require("../assets/icon/arrow.png");
 const searchIcon = require("../assets/icon/search.png");
 
-type Contact = {
+type IContact = {
   id: string;
   name: string;
   lastName: string;
   number: number;
 };
 export default function Contact() {
-  const insets = useSafeAreaInsets();
   const [contacts, setContacts] = useState<
-    { letter: string; contacts: Contact[] }[]
+    { letter: string; contacts: IContact[] }[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
@@ -166,6 +165,8 @@ export default function Contact() {
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === "granted") {
         searchContacts();
+      } else {
+        searchContacts();
       }
     };
     getPermission();
@@ -185,7 +186,7 @@ export default function Contact() {
       return fullNameA.localeCompare(fullNameB);
     });
 
-    const filteredContacts = sortedContacts.filter((contact: Contact) => {
+    const filteredContacts = sortedContacts.filter((contact: IContact) => {
       const fullName =
         `${contact.name || ""} ${contact.lastName || ""}`.toLowerCase();
       const phoneNumber = `${contact.number}`;
@@ -196,7 +197,7 @@ export default function Contact() {
 
     // Define el tipo de groupedContacts
     const groupedContacts = filteredContacts.reduce<{
-      [letter: string]: Contact[];
+      [letter: string]: IContact[];
     }>((acc, contact) => {
       const firstLetter = contact.name.charAt(0).toUpperCase();
       if (!acc[firstLetter]) {
@@ -215,13 +216,21 @@ export default function Contact() {
   };
 
   return (
-    <View
-      style={{
-        paddingTop: insets.top,
-        paddingBottom: insets.bottom,
-        alignItems: "center",
-      }}
-    >
+    <Screen>
+      <Stack.Screen
+        options={{
+          headerBackVisible: true,
+          headerTintColor: "#4C51F7",
+          headerLeft: () => "",
+          headerTitle: "Seleccioná un contacto",
+          headerTitleAlign: "center",
+          headerTitleStyle: {
+            fontWeight: "700",
+            fontSize: 16,
+            color: "#4C51F7",
+          },
+        }}
+      />
       <View style={styles.row}>
         <Pressable onPress={searchContacts}>
           <Image style={styles.searchLogo} source={searchIcon} />
@@ -245,27 +254,40 @@ export default function Contact() {
             <View>
               <Text style={styles.header}>{item.letter}</Text>
               {item.contacts.map((contact: any) => (
-                <View key={contact.id} style={styles.contactContainer}>
-                  <View style={styles.contactInformation}>
-                    <View style={styles.contactLogo}>
-                      <Text style={styles.contactLogoText}>
-                        {contact.name[0]}
-                        {contact.lastName[0]}
-                      </Text>
+                <Link
+                  href={{
+                    pathname: "/sinpe/1",
+                    params: {
+                      contact: JSON.stringify(contact),
+                    },
+                  }}
+                  asChild
+                  key={contact.id}
+                >
+                  <Pressable>
+                    <View key={contact.id} style={styles.contactContainer}>
+                      <View style={styles.contactInformation}>
+                        <View style={styles.contactLogo}>
+                          <Text style={styles.contactLogoText}>
+                            {contact.name[0]}
+                            {contact.lastName[0]}
+                          </Text>
+                        </View>
+                        <View>
+                          <Text style={styles.contactName}>
+                            {contact.name} {contact.lastName}
+                          </Text>
+                          <Text style={styles.contactNumber}>
+                            +506 {contact.number}
+                          </Text>
+                        </View>
+                      </View>
+                      <View>
+                        <Image source={arrow} />
+                      </View>
                     </View>
-                    <View>
-                      <Text style={styles.contactName}>
-                        {contact.name} {contact.lastName}
-                      </Text>
-                      <Text style={styles.contactNumber}>
-                        +506 {contact.number}
-                      </Text>
-                    </View>
-                  </View>
-                  <View>
-                    <Image source={arrow} />
-                  </View>
-                </View>
+                  </Pressable>
+                </Link>
               ))}
               <View style={styles.separator} />
             </View>
@@ -273,7 +295,7 @@ export default function Contact() {
           ListEmptyComponent={() => <Text>No hay contactos</Text>}
         />
       )}
-    </View>
+    </Screen>
   );
 }
 
@@ -285,8 +307,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   textInput: {
-    padding: 5,
-    margin: 16,
     flex: 1,
     fontStyle: "normal",
     fontWeight: "400",
@@ -296,9 +316,12 @@ const styles = StyleSheet.create({
   },
   list: {
     flex: 1,
-    width: "100%",
+    marginTop: 24,
   },
   row: {
+    marginTop: 16,
+    marginLeft: 16,
+    marginRight: 16,
     height: 48,
     flexDirection: "row",
     alignItems: "center",
