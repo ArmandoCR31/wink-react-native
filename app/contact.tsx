@@ -83,7 +83,7 @@ export default function Contact() {
     const filteredContacts = sortedContacts.filter((contact: any) => {
       const fullName =
         `${contact.name || ""} ${contact.lastName || ""}`.toLowerCase();
-      const phoneNumber = `${contact.number}`;
+      const phoneNumber = `${contact.phoneNumbers[0].number}`;
       const searchTerm = search.toLowerCase();
 
       return fullName.includes(searchTerm) || phoneNumber.includes(searchTerm);
