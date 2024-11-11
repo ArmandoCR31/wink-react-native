@@ -174,19 +174,17 @@ export default function Contact() {
 
   const searchContacts = async () => {
     setIsLoading(true);
-    // const config = { sort: Contacts.SortTypes.FirstName };
-    // const loadedContacts = (await Contacts.getContactsAsync(config)) || {
-    //   data: [],
-    // };
-    const loadedContacts = dataTest;
-
-    const sortedContacts = loadedContacts[0].data.sort((a, b) => {
+    const config = { sort: Contacts.SortTypes.FirstName };
+    const loadedContacts = (await Contacts.getContactsAsync(config)) || {
+      data: [],
+    };
+    const sortedContacts = loadedContacts.data.sort((a, b) => {
       const fullNameA = `${a.name} ${a.lastName}`.toLowerCase();
       const fullNameB = `${b.name} ${b.lastName}`.toLowerCase();
       return fullNameA.localeCompare(fullNameB);
     });
 
-    const filteredContacts = sortedContacts.filter((contact: IContact) => {
+    const filteredContacts = sortedContacts.filter((contact: any) => {
       const fullName =
         `${contact.name || ""} ${contact.lastName || ""}`.toLowerCase();
       const phoneNumber = `${contact.number}`;
@@ -197,7 +195,7 @@ export default function Contact() {
 
     // Define el tipo de groupedContacts
     const groupedContacts = filteredContacts.reduce<{
-      [letter: string]: IContact[];
+      [letter: string]: any[];
     }>((acc, contact) => {
       const firstLetter = contact.name.charAt(0).toUpperCase();
       if (!acc[firstLetter]) {
@@ -269,7 +267,7 @@ export default function Contact() {
                       <View style={styles.contactInformation}>
                         <View style={styles.contactLogo}>
                           <Text style={styles.contactLogoText}>
-                            {contact.name[0]}
+                            {contact.firstName[0]}
                             {contact.lastName[0]}
                           </Text>
                         </View>
@@ -278,7 +276,8 @@ export default function Contact() {
                             {contact.name} {contact.lastName}
                           </Text>
                           <Text style={styles.contactNumber}>
-                            +506 {contact.number}
+                            {" "}
+                            {contact?.phoneNumbers?.[0]?.number}
                           </Text>
                         </View>
                       </View>

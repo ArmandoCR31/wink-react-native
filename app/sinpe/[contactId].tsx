@@ -1,11 +1,22 @@
-import { View, Text, StyleSheet, TextInput, Pressable } from "react-native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Pressable,
+  Alert,
+} from "react-native";
+import { Stack, useLocalSearchParams, router } from "expo-router";
 import { Screen } from "../../components/Screen";
 import { useState } from "react";
 import { TextInputMask } from "react-native-masked-text";
+import { ITransaction, IUser } from "../../models/types";
+import { createTransaction } from "../../api/transaction";
+import { getUser as fetchUser, updateUser } from "../../api/user";
 
 export default function SinpeTransaction() {
   const [amount, setAmount] = useState("");
+  const [detail, setDetail] = useState("");
   const { contact } = useLocalSearchParams();
   const contactObject = contact
     ? JSON.parse(decodeURIComponent(contact as string))
@@ -32,6 +43,54 @@ export default function SinpeTransaction() {
       </Screen>
     );
   }
+
+  async function updateUserBalance(userId: string, user: IUser) {
+    // Llamada a tu API para obtener el saldo del usuario
+    const response = await updateUser(userId, user);
+    return response.amount;
+  }
+
+  const handleConfirm = async () => {
+    if (!amount || parseFloat(amount.replace(/[^0-9.-]+/g, "")) <= 0) {
+      alert("Por favor ingrese un monto válido.");
+      return;
+    }
+
+    const transactionAmount = parseInt(amount.replace(/\D/g, ""), 10);
+    try {
+      const userId = "ad677daf-9a6a-446a-b6c2-ce61fa1bc07e";
+      const user = await fetchUser(userId);
+      const userBalance = user.amount;
+      if (userBalance < transactionAmount) {
+        Alert.alert(
+          "Error",
+          "No tienes suficiente saldo para realizar esta transacción."
+        );
+        return;
+      }
+
+      const updatedUser = { ...user, amount: userBalance - transactionAmount };
+      await updateUserBalance(userId, updatedUser);
+      const transaction: ITransaction = {
+        amount: transactionAmount,
+        contact: {
+          name: contactObject.name,
+          lastName: contactObject.lastName,
+        },
+        description: detail,
+        createdAt: new Date().toISOString(),
+        type: "SINPE móvil",
+        transactionId: "",
+      };
+      await createTransaction(transaction);
+      Alert.alert("Éxito", "Transacción realizada con éxito.");
+      router.push("/");
+    } catch (error) {
+      console.log(error);
+
+      Alert.alert("Error", "No se pudo realizar la transacción.");
+    }
+  };
 
   return (
     <Screen>
@@ -63,7 +122,7 @@ export default function SinpeTransaction() {
               {contactObject.name} {contactObject.lastName}
             </Text>
             <Text style={styles.contactNumber}>
-              +506 {contactObject.number}
+              {contactObject?.phoneNumbers?.[0]?.number}
             </Text>
           </View>
         </View>
@@ -86,10 +145,12 @@ export default function SinpeTransaction() {
           <TextInput
             style={styles.inputStyle}
             placeholder="Detalle"
+            value={detail}
+            onChangeText={(text) => setDetail(text)}
           ></TextInput>
         </View>
         <View style={styles.buttonContainer}>
-          <Pressable style={styles.button}>
+          <Pressable style={styles.button} onPress={handleConfirm}>
             <Text style={styles.textButton}>Confirmar</Text>
           </Pressable>
         </View>

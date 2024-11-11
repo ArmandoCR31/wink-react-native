@@ -1,13 +1,20 @@
 export interface ITransaction {
-  id: string;
-  amount: string;
-  date: string;
+  transactionId: string;
+  amount: number;
+  createdAt: string;
   contact: {
     name: string;
     lastName: string;
   };
   description: string;
   type: string;
+}
+
+export interface IUser {
+  id: string;
+  name: string;
+  lastName: string;
+  amount: number;
 }
 
 export interface IContact {

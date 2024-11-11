@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { View, StyleSheet, Text, Animated, Pressable } from "react-native";
 import { ITransaction } from "../models/types";
 import { Link } from "expo-router";
+import { TransactionDate } from "./TransactionDate";
 type TransactionCardProps = {
   transaction: ITransaction;
 };
@@ -16,16 +17,16 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
         },
       }}
       asChild
-      key={transaction.id}
+      key={transaction.transactionId}
     >
       <Pressable>
-        <View key={transaction.id} style={styles.card}>
+        <View key={transaction.transactionId} style={styles.card}>
           <View>
             <Text style={styles.contact}>
               {transaction.type} - {transaction.contact.name}{" "}
               {transaction.contact.lastName}
             </Text>
-            <Text style={styles.date}>{transaction.date}</Text>
+            <TransactionDate date={transaction.createdAt} />
           </View>
           <View>
             <Text style={styles.amount}>-₡ {transaction.amount}</Text>
@@ -38,7 +39,6 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
 
 export function AnimatedTransactionCard({ transaction, index }: any) {
   const opacity = useRef(new Animated.Value(0)).current;
-
   useEffect(() => {
     Animated.timing(opacity, {
       toValue: 1,

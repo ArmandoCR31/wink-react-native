@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Stack, Link, useLocalSearchParams } from "expo-router";
 import { Screen } from "../../../components/Screen";
+import { TransactionDate } from "../../../components/TransactionDate";
 
 export default function SinpeTransaction() {
   const { detail } = useLocalSearchParams();
@@ -65,7 +66,7 @@ export default function SinpeTransaction() {
         <View style={styles.details}>
           <View>
             <Text style={styles.titleStyle}>Fecha</Text>
-            <Text style={styles.descriptionStyle}>{detailObject.date}</Text>
+            <TransactionDate date={detailObject.createdAt} />
           </View>
           <View>
             <Text style={styles.titleStyle}>Descripción</Text>
