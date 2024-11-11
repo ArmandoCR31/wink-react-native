@@ -1,37 +1,29 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
-
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
+/**
+ * Layout Component
+ *
+ * This component serves as a layout wrapper for screens in the application. It is responsible for
+ * configuring the header options for the screens within the `Stack` navigation, such as hiding
+ * the default header title and displaying a custom logo on the left side of the header.
+ *
+ * The component handles:
+ * - Displaying a custom logo on the header's left side.
+ * - Disabling the header shadow for a cleaner UI.
+ * - Hiding the default header title for a more minimalistic appearance.
+ *
+ * // Usage in another component
+ * <Layout />
+ */
+import { Stack } from "expo-router";
+import { Image } from "react-native";
+const logo = require("../assets/images/logo.png");
+export default function Layout() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-    </ThemeProvider>
+    <Stack
+      screenOptions={{
+        headerShadowVisible: false,
+        headerTitle: "",
+        headerLeft: () => <Image source={logo}></Image>,
+      }}
+    />
   );
 }
