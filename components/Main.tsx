@@ -1,10 +1,38 @@
+/**
+ * Main Component
+ *
+ * This component serves as the main screen of the application, displaying the user's account balance
+ * and a list of recent transactions. It integrates the loading of user data and transaction data,
+ * handles pagination for loading transactions, and includes a refresh control for refreshing the user data.
+ *
+ * The component performs the following tasks:
+ * - Fetches the user's account information and displays the balance.
+ * - Fetches and displays a list of transactions, with pagination to load more as the user scrolls.
+ * - Allows the user to refresh their account data using a pull-to-refresh mechanism.
+ * - Merges and sorts transactions in descending order based on the transaction date.
+ * - Displays a loading spinner while fetching data and additional transactions.
+ *
+ * It uses the following hooks:
+ * - `useState`: For managing state variables (user, transactions, loading, etc.).
+ * - `useEffect`: To load data when the component mounts.
+ * - `useRef`: To keep track of the last evaluated key for paginated transaction loading.
+ * - `useCallback`: For memoizing functions to optimize performance.
+ *
+ * Dependencies:
+ * - `getUser`: Fetches user data from an API.
+ * - `getAllTransactions`: Fetches transaction data from an API.
+ *
+ * Props:
+ * - None
+ *
+ * // Usage example:
+ * <Main />
+ */
 import { useEffect, useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
-  Image,
   FlatList,
-  Pressable,
   StyleSheet,
   ActivityIndicator,
   ScrollView,
@@ -16,20 +44,25 @@ import { Screen } from "./Screen";
 import { getUser } from "../api/user";
 import { getAllTransactions } from "../api/transaction";
 import { BalanceView } from "./BalanceView";
+/**
+ * Renders the Main screen.
+ * - Displays the main.
+ */
 export function Main() {
+  // States for user data, transactions, loading, and pagination
   const [transactions, setTransactions] = useState<ITransaction[]>([]);
   const [user, setUser] = useState<IUser | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false); // Estado de carga global para la paginación
+  const [loading, setLoading] = useState(false);
   const [refreshingUser, setRefreshingUser] = useState(false);
-
-  const lastEvaluatedKeyRef = useRef<any>(null); // Guarda la última clave evaluada
-
+  // Ref to keep track of the last evaluated key for pagination
+  const lastEvaluatedKeyRef = useRef<any>(null);
+  // Load user and transaction data when the component mounts
   useEffect(() => {
     loadUser();
-    loadTransactions(true); // Carga las transacciones iniciales
+    loadTransactions();
   }, []);
-
+  // Load user data (called initially and on refresh)
   const loadUser = useCallback(async (isRefreshing = false) => {
     if (isRefreshing) setRefreshingUser(true);
     try {
@@ -41,9 +74,9 @@ export function Main() {
       if (isRefreshing) setRefreshingUser(false);
     }
   }, []);
-
+  // Load transactions with pagination
   const loadTransactions = useCallback(async () => {
-    if (!hasMore) return;
+    if (!hasMore) return; // Prevent further loading if no more transactions are available
     setLoading(true);
     try {
       const param = lastEvaluatedKeyRef.current
@@ -52,13 +85,13 @@ export function Main() {
       const response = await getAllTransactions(param);
       const newTransactions = response.items || [];
       lastEvaluatedKeyRef.current = response.lastEvaluatedKey;
-
+      // Merge new transactions with the existing list and sort by date
       setTransactions((prevTransactions) =>
         mergeTransactions(prevTransactions, newTransactions)
       );
 
       if (!response.lastEvaluatedKey) {
-        setHasMore(false);
+        setHasMore(false); // No more transactions to load
       }
     } catch (error) {
       console.log("Error al cargar transacciones:", error);
@@ -66,13 +99,13 @@ export function Main() {
       setLoading(false);
     }
   }, [hasMore]);
-
+  // Handle scrolling to load more transactions
   const handleEndReached = useCallback(() => {
     if (!loading && hasMore) {
       loadTransactions();
     }
   }, [loading, hasMore, loadTransactions]);
-
+  // Merge and sort transactions by date (descending)
   const mergeTransactions = (
     existingTransactions: ITransaction[],
     newTransactions: ITransaction[]
@@ -88,11 +121,11 @@ export function Main() {
       ).values(),
     ];
   };
-
+  // Refresh the user data when triggered by the pull-to-refresh action
   const handleUserRefresh = useCallback(() => {
-    loadUser(true); // Llama a loadUser con el parámetro de recarga
+    loadUser(true);
   }, [loadUser]);
-
+  // Display
   return (
     <Screen>
       <ScrollView
@@ -126,7 +159,7 @@ export function Main() {
     </Screen>
   );
 }
-
+// Styles for the component
 const styles = StyleSheet.create({
   scrollView: {
     flex: 1,

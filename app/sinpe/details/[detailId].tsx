@@ -1,14 +1,31 @@
+/**
+ * DetailTransaction Component
+ *
+ * This component displays the details of a specific transaction, including the contact's information,
+ * transaction amount, description, and date. It retrieves the transaction data from the URL query
+ * parameter and shows an error message if the data is invalid. The component also provides a button
+ * that allows the user to navigate back to the main screen.
+ *
+ * // Usage in another component
+ * <DetailTransaction />
+ */
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Stack, Link, useLocalSearchParams } from "expo-router";
 import { Screen } from "../../../components/Screen";
 import { TransactionDate } from "../../../components/TransactionDate";
-
-export default function SinpeTransaction() {
+/**
+ * DetailTransaction component is used to display the details of a specific transaction.
+ * The transaction data is retrieved from the URL query parameter, parsed, and shown in the UI.
+ * If no valid data is found, an error message is displayed instead.
+ */
+export default function DetailTransaction() {
+  // Retrieve and parse the `detail` parameter from the URL
   const { detail } = useLocalSearchParams();
   const detailObject = detail
     ? JSON.parse(decodeURIComponent(detail as string))
     : null;
 
+  // Error display if detailObject is null
   if (!detailObject) {
     return (
       <Screen>
@@ -31,6 +48,7 @@ export default function SinpeTransaction() {
     );
   }
 
+  // Display transaction details if detailObject exists
   return (
     <Screen>
       <Stack.Screen
@@ -57,8 +75,7 @@ export default function SinpeTransaction() {
           </View>
           <View style={styles.contactText}>
             <Text style={styles.contactName}>
-              {detailObject.type} - {detailObject.contact.name}{" "}
-              {detailObject.contact.lastName}
+              {detailObject.type} - {detailObject.contact.name}
             </Text>
             <Text style={styles.amountText}>₡{detailObject.amount}</Text>
           </View>
@@ -96,6 +113,7 @@ export default function SinpeTransaction() {
   );
 }
 
+// Styles for the component
 const styles = StyleSheet.create({
   sinpeContainer: {
     backgroundColor: "#0000",

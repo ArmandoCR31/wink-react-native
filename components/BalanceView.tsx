@@ -1,3 +1,21 @@
+/**
+ * BalanceView Component
+ *
+ * This component displays the current balance of a user in the account and provides
+ * an option to initiate a SINPE móvil transaction. It shows the user's available balance
+ * in Costa Rican colones (CRC) with a localized currency format.
+ *
+ * The component handles:
+ * - Displaying the user's account balance, formatted in CRC currency.
+ * - A loading indicator is shown if the user data is not available.
+ * - A button to navigate to the SINPE mobile transaction screen.
+ *
+ * Props:
+ * - `user`: An object representing the user, containing their account balance (or `null` if not available).
+ *
+ * // Usage example:
+ * <BalanceView user={user} />
+ */
 import { Link } from "expo-router";
 import {
   Pressable,
@@ -10,7 +28,12 @@ import {
 import { IUser } from "../models/types";
 const sinpeLogo = require("../assets/images/Sinpe.png");
 
+/**
+ * Renders the BalanceView screen.
+ * - Displays the balance details.
+ */
 export function BalanceView({ user }: { user: IUser | null }) {
+  // Display
   return (
     <View style={styles.details}>
       <Text style={styles.title}>Cuenta Colones</Text>
@@ -36,6 +59,7 @@ export function BalanceView({ user }: { user: IUser | null }) {
   );
 }
 
+// Styles for the component
 const styles = StyleSheet.create({
   details: {
     paddingLeft: 16,

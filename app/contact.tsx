@@ -1,3 +1,16 @@
+/**
+ * Contact Component
+ *
+ * This component allows the user to access their contacts, search them by name or number,
+ * and view the contacts grouped by the first letter of their name. It uses `expo-contacts`
+ * to fetch the contacts and `FlatList` to render the contacts efficiently.
+ *
+ * The component also includes permission handling to request access to contacts and
+ * search functionality for filtering contacts.
+ *
+ * // Usage in another component
+ * <Contact />
+ */
 import * as Contacts from "expo-contacts";
 import React, { useEffect, useState } from "react";
 import {
@@ -12,154 +25,28 @@ import {
 } from "react-native";
 import { Link, Stack } from "expo-router";
 import { Screen } from "../components/Screen";
+import { IContact } from "../models/types";
 
 const arrow = require("../assets/icon/arrow.png");
 const searchIcon = require("../assets/icon/search.png");
 
-type IContact = {
-  id: string;
-  name: string;
-  lastName: string;
-  number: number;
-};
+/**
+ * The main Contact component.
+ *
+ * Handles the permission request for accessing contacts, fetching and sorting
+ * contacts, and searching for specific contacts by name or phone number.
+ * Displays the contacts in a grouped list and allows users to navigate to a
+ * different screen with the selected contact's details.
+ */
 export default function Contact() {
   const [contacts, setContacts] = useState<
     { letter: string; contacts: IContact[] }[]
   >([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
-  const dataTest = [
-    {
-      data: [
-        {
-          id: "01",
-          name: "Marvin",
-          lastName: "Castro Roldán",
-          number: 83362273,
-        },
-        {
-          id: "02",
-          name: "Laura",
-          lastName: "Pérez Jiménez",
-          number: 87654321,
-        },
-        {
-          id: "03",
-          name: "Carlos",
-          lastName: "Ramírez Solano",
-          number: 89451230,
-        },
-        {
-          id: "04",
-          name: "María",
-          lastName: "Torres Guevara",
-          number: 80122345,
-        },
-        {
-          id: "05",
-          name: "Luis",
-          lastName: "Mora Villalobos",
-          number: 87001234,
-        },
-        {
-          id: "06",
-          name: "Andrea",
-          lastName: "López Salazar",
-          number: 88903456,
-        },
-        {
-          id: "07",
-          name: "Manuel",
-          lastName: "Vargas Aguilar",
-          number: 83214567,
-        },
-        {
-          id: "08",
-          name: "Sofía",
-          lastName: "González Monge",
-          number: 84457612,
-        },
-        {
-          id: "09",
-          name: "Fernando",
-          lastName: "Araya Vega",
-          number: 81234567,
-        },
-        {
-          id: "10",
-          name: "Daniela",
-          lastName: "Rojas Rojas",
-          number: 85412345,
-        },
-        {
-          id: "11",
-          name: "Sebastián",
-          lastName: "Quesada Leiva",
-          number: 80987654,
-        },
-        {
-          id: "12",
-          name: "Jose",
-          lastName: "Gutiérrez Díaz",
-          number: 89761234,
-        },
-        {
-          id: "13",
-          name: "Alejandro",
-          lastName: "Marín Soto",
-          number: 83344321,
-        },
-        {
-          id: "14",
-          name: "Gabriela",
-          lastName: "Soto Herrera",
-          number: 87432156,
-        },
-        {
-          id: "15",
-          name: "Ricardo",
-          lastName: "Hernández Mora",
-          number: 84123456,
-        },
-        {
-          id: "16",
-          name: "Monserrat",
-          lastName: "Castro Blanco",
-          number: 89123456,
-        },
-        {
-          id: "17",
-          name: "Samuel",
-          lastName: "Jiménez Paniagua",
-          number: 85123478,
-        },
-        {
-          id: "18",
-          name: "Verónica",
-          lastName: "Díaz Sánchez",
-          number: 82213456,
-        },
-        {
-          id: "19",
-          name: "Felipe",
-          lastName: "Alvarado Campos",
-          number: 84561234,
-        },
-        {
-          id: "20",
-          name: "Natalia",
-          lastName: "Céspedes Mora",
-          number: 81234509,
-        },
-        {
-          id: "21",
-          name: "Marvin",
-          lastName: "Perez Roldán",
-          number: 83362273,
-        },
-      ],
-    },
-  ];
+  /**
+   * Requests permission to access contacts on the device. If granted, it fetches contacts.
+   */
   useEffect(() => {
     const getPermission = async () => {
       const { status } = await Contacts.requestPermissionsAsync();
@@ -172,18 +59,27 @@ export default function Contact() {
     getPermission();
   }, []);
 
+  /**
+   * Fetches contacts from the device, sorts them by full name, filters them based
+   * on the search term, and groups them by the first letter of their name.
+   *
+   * @async
+   */
   const searchContacts = async () => {
     setIsLoading(true);
     const config = { sort: Contacts.SortTypes.FirstName };
     const loadedContacts = (await Contacts.getContactsAsync(config)) || {
       data: [],
     };
+
+    // Group contact sorted
     const sortedContacts = loadedContacts.data.sort((a, b) => {
       const fullNameA = `${a.name} ${a.lastName}`.toLowerCase();
       const fullNameB = `${b.name} ${b.lastName}`.toLowerCase();
       return fullNameA.localeCompare(fullNameB);
     });
 
+    // Group contact filtered
     const filteredContacts = sortedContacts.filter((contact: any) => {
       const fullName =
         `${contact.name || ""} ${contact.lastName || ""}`.toLowerCase();
@@ -193,7 +89,7 @@ export default function Contact() {
       return fullName.includes(searchTerm) || phoneNumber.includes(searchTerm);
     });
 
-    // Define el tipo de groupedContacts
+    // Group contacts by the first letter of the name
     const groupedContacts = filteredContacts.reduce<{
       [letter: string]: any[];
     }>((acc, contact) => {
@@ -205,6 +101,7 @@ export default function Contact() {
       return acc;
     }, {});
 
+    // Convert grouped contacts object to an array
     const groupedContactsArray = Object.keys(groupedContacts).map((key) => ({
       letter: key,
       contacts: groupedContacts[key],
@@ -212,7 +109,7 @@ export default function Contact() {
     setContacts(groupedContactsArray);
     setIsLoading(false);
   };
-
+  // Display
   return (
     <Screen>
       <Stack.Screen
@@ -272,9 +169,7 @@ export default function Contact() {
                           </Text>
                         </View>
                         <View>
-                          <Text style={styles.contactName}>
-                            {contact.name} {contact.lastName}
-                          </Text>
+                          <Text style={styles.contactName}>{contact.name}</Text>
                           <Text style={styles.contactNumber}>
                             {" "}
                             {contact?.phoneNumbers?.[0]?.number}
@@ -297,7 +192,7 @@ export default function Contact() {
     </Screen>
   );
 }
-
+// Styles for the component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

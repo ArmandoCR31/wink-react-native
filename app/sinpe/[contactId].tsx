@@ -1,3 +1,19 @@
+/**
+ * SinpeTransaction Component
+ *
+ * This component allows the user to perform a SINPE mobile transaction, where the user
+ * can transfer money to a selected contact. It displays the contact's details and
+ * allows the user to input the transaction amount and description.
+ *
+ * The component handles:
+ * - Contact details display.
+ * - User balance validation before the transaction.
+ * - Transaction creation in the backend.
+ * - User balance update after a successful transaction.
+ *
+ * // Usage in another component
+ * <SinpeTransaction />
+ */
 import {
   View,
   Text,
@@ -14,14 +30,20 @@ import { ITransaction, IUser } from "../../models/types";
 import { createTransaction } from "../../api/transaction";
 import { getUser as fetchUser, updateUser } from "../../api/user";
 
+/**
+ * Renders the SinpeTransaction screen.
+ * - Displays the contact details.
+ * - Allows the user to input the transaction amount and description.
+ * - Handles transaction confirmation.
+ */
 export default function SinpeTransaction() {
-  const [amount, setAmount] = useState("");
-  const [detail, setDetail] = useState("");
-  const { contact } = useLocalSearchParams();
+  const [amount, setAmount] = useState(""); // Stores the entered transaction amount
+  const [detail, setDetail] = useState(""); // Stores the description for the transaction
+  const { contact } = useLocalSearchParams(); // Retrieves contact information passed in the URL
   const contactObject = contact
     ? JSON.parse(decodeURIComponent(contact as string))
-    : null;
-
+    : null; // Decodes and parses the contact data
+  // Displays error if contact data is not found
   if (!contactObject) {
     return (
       <Screen>
@@ -44,12 +66,31 @@ export default function SinpeTransaction() {
     );
   }
 
+  /**
+   * Handles the SINPE mobile transaction flow.
+   * This function retrieves user information, checks the balance, updates the balance,
+   * and creates the transaction if everything is valid.
+   *
+   * @async
+   * @function
+   * @returns {Promise<void>}
+   */
   async function updateUserBalance(userId: string, user: IUser) {
-    // Llamada a tu API para obtener el saldo del usuario
+    // API call to update the user's balance
     const response = await updateUser(userId, user);
     return response.amount;
   }
 
+  /**
+   * Handles the confirmation of the transaction.
+   * - Validates the entered amount.
+   * - Checks if the user has enough balance.
+   * - Updates the user's balance and creates the transaction.
+   * - Displays success or error messages.
+   *
+   * @async
+   * @function
+   */
   const handleConfirm = async () => {
     if (!amount || parseFloat(amount.replace(/[^0-9.-]+/g, "")) <= 0) {
       alert("Por favor ingrese un monto válido.");
@@ -58,17 +99,18 @@ export default function SinpeTransaction() {
 
     const transactionAmount = parseInt(amount.replace(/\D/g, ""), 10);
     try {
-      const userId = "ad677daf-9a6a-446a-b6c2-ce61fa1bc07e";
-      const user = await fetchUser(userId);
+      const userId = "ad677daf-9a6a-446a-b6c2-ce61fa1bc07e"; // User ID for testing
+      const user = await fetchUser(userId); // Fetch current user data
       const userBalance = user.amount;
       if (userBalance < transactionAmount) {
+        // Alert if user doesn't have enough balance
         Alert.alert(
           "Error",
           "No tienes suficiente saldo para realizar esta transacción."
         );
         return;
       }
-
+      // Update user balance and create the transaction
       const updatedUser = { ...user, amount: userBalance - transactionAmount };
       await updateUserBalance(userId, updatedUser);
       const transaction: ITransaction = {
@@ -82,16 +124,16 @@ export default function SinpeTransaction() {
         type: "SINPE móvil",
         transactionId: "",
       };
-      await createTransaction(transaction);
+      await createTransaction(transaction); // Create the transaction in the backend
       Alert.alert("Éxito", "Transacción realizada con éxito.");
-      router.push("/");
+      router.push("/"); // Redirect to home
     } catch (error) {
       console.log(error);
 
       Alert.alert("Error", "No se pudo realizar la transacción.");
     }
   };
-
+  // Display
   return (
     <Screen>
       <Stack.Screen
@@ -118,9 +160,7 @@ export default function SinpeTransaction() {
             </Text>
           </View>
           <View>
-            <Text style={styles.contactName}>
-              {contactObject.name} {contactObject.lastName}
-            </Text>
+            <Text style={styles.contactName}>{contactObject.name}</Text>
             <Text style={styles.contactNumber}>
               {contactObject?.phoneNumbers?.[0]?.number}
             </Text>
@@ -158,7 +198,7 @@ export default function SinpeTransaction() {
     </Screen>
   );
 }
-
+// Styles for the component
 const styles = StyleSheet.create({
   sinpeContainer: {
     backgroundColor: "#0000",
